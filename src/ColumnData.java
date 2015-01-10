@@ -41,6 +41,7 @@ public class ColumnData
 	
 	private void setUpEnumValues(String valuedata)
 	{
+		// put the list of values for the ENUM or SET into a List for accessing later
 		valuedata = valuedata.replace("'", "");
 		String[] vals = valuedata.split(",");
 		enumvalues = Arrays.asList(vals);
@@ -245,7 +246,7 @@ public class ColumnData
 				{ return false; }
 				
 				// Finally, check the time portion
-				if (!(checkTime(value.substring(11), true, false)))
+				if (!(checkTime(value.substring(11), true, false, false)))
 				{ return false; }
 				
 			} else if (value.length() == 17) {
@@ -261,7 +262,7 @@ public class ColumnData
 				{ return false; }
 				
 				// Finally, check the time portion
-				if (!(checkTime(value.substring(9), true, false)))
+				if (!(checkTime(value.substring(9), true, false, false)))
 				{ return false; }
 				
 			} else if (value.length() == 14) {
@@ -272,7 +273,7 @@ public class ColumnData
 				{ return false; }
 				
 				// Finally, check the time portion
-				if (!(checkTime(value.substring(8), false, false)))
+				if (!(checkTime(value.substring(8), false, false, false)))
 				{ return false; }
 				
 			} else if (value.length() == 12) {
@@ -283,7 +284,7 @@ public class ColumnData
 				{ return false; }
 				
 				// Finally, check the time portion
-				if (!(checkTime(value.substring(6), false, false)))
+				if (!(checkTime(value.substring(6), false, false, false)))
 				{ return false; }
 				
 			} else {
@@ -376,7 +377,7 @@ public class ColumnData
 				}
 				else if (value.length() == 6)
 				{ // HHMMSS
-					return checkTime(value, false, false);
+					return checkTime(value, false, false, true);
 				}
 				
 				// MMSS only applies if the data being entered is not being entered as a string
@@ -429,9 +430,9 @@ public class ColumnData
 			}
 			
 			if (tims.length() == 8) { // HH:MM:SS
-				return checkTime(tims, true, false); }
+				return checkTime(tims, true, false, true); }
 			else if (tims.length() == 5) { // HH:MM
-				return checkTime(tims, true, true); }
+				return checkTime(tims, true, true, true); }
 			else { return false; } // something about this string just isn't right, it's not a valid time format
 			
 		case VarChar:
@@ -730,7 +731,17 @@ public class ColumnData
 		return true;
 	}
 	
-	private boolean checkTime(String value, boolean punctuation, boolean twovalues)
+	/**
+	 * Check a string representation of a time value to see if it is valid.
+	 * @param value The value to check.
+	 * @param punctuation Check if there is punctuation or not. For example, if checking for "HH:MM:SS", input "true".
+	 * If checking for "HHMMSS", input false.
+	 * @param twovalues Check for two values or three. For example, if checking for "HH:MM", input "true".
+	 * If checking for "HH:MM:SS", input "false".
+	 * @param allowlargerthan24hrs Allow the max hour value to be 99 or 24. If "true", the max value will be 99.
+	 * @return "true" if the string is valid. "false" if the string is invalid in some way.
+	 */
+	private boolean checkTime(String value, boolean punctuation, boolean twovalues, boolean allowlargerthan24hrs)
 	{	
 		int hour = 0;
 		int min = 0;
@@ -792,22 +803,32 @@ public class ColumnData
 		}
 		
 		// parse time values
-		if (hour > 24)
+		if (allowlargerthan24hrs)
 		{
-			return false;
-		}
-		else if (min > 60)
-		{
-			return false;
-		}
-		else if (sec > 60)
-		{
-			return false;
+			if (hour > 99 || hour < -9)
+			{
+				return false;
+			}
 		}
 		else
 		{
-			return true; // seems fine to me
+			if (hour > 24 || hour < 0)
+			{
+				return false;
+			}
 		}
+
+		if (min > 59 || min < 0)
+		{
+			return false;
+		}
+		
+		if (sec > 59 || min < 0)
+		{
+			return false;
+		}
+		
+		return true; // seems fine to me
 		
 	}
 	

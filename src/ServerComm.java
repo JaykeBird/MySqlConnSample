@@ -112,7 +112,6 @@ public class ServerComm {
 			case "about":
 				System.out.println("MySQL Server Connection Sample");
 				System.out.println("Created by Jacob R. Huempfner, January 2015");
-				System.out.println("jaykebird.github.com");
 				break;
 			case "table":
 				// Select the table to work with
